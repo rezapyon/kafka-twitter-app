@@ -1,4 +1,4 @@
-package com.github.rezapyon.kafkaTwitterApp;
+package kafka.producer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
