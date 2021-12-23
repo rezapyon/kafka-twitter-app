@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class TwitterProducer {
 
     String consumerKey, consumerSecret, token, secret;
-    List<String> terms = Lists.newArrayList("fromis9", "Lee Ji Eun");
+    List<String> terms = Lists.newArrayList("fromis_9", "Lee Ji Eun", "이지은", "kpop", "tottenham");
 
     Logger logger = LoggerFactory.getLogger(TwitterProducer.class.getName());
 
@@ -122,6 +122,14 @@ public class TwitterProducer {
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        // create safe producer
+        properties.setProperty(ProducerConfig.ACKS_CONFIG, "all");
+
+        // high throughput producer (at the expense of a bit of latency and CPU usage)
+        properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+        properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, "20");
+        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(32*1024));
 
         // create the producer
         return new KafkaProducer<String, String>(properties);
