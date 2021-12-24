@@ -1,5 +1,6 @@
 package kafka.consumer;
 
+import com.google.gson.JsonParser;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -70,6 +70,10 @@ public class ElasticSearchConsumer {
         return consumer;
     }
 
+    private static String extractIdFromTweet(String tweetJson){
+        return JsonParser.parseString(tweetJson).getAsJsonObject().get("id_str").getAsString();
+    }
+
     public static void main(String[] args) throws IOException {
         Logger logger = LoggerFactory.getLogger(ElasticSearchConsumer.class.getName());
         RestHighLevelClient client = createClient();
@@ -78,11 +82,17 @@ public class ElasticSearchConsumer {
         while(true){
             ConsumerRecords<String, String> records =  consumer.poll(Duration.ofMillis(100));
             for(ConsumerRecord<String, String> record : records) {
+                // 2 strategies to make this idempotent (not duplicate)
+                // kafka Generic ID
+                // String id = record.topic() + "_" + record.partition() + "_" + record.offset();
+
+                // twitter feed specific id
+                String id = extractIdFromTweet(record.value());
+
                 // Where we insert data into ES
-                IndexRequest indexRequest = new IndexRequest("tweets").source(record.value(), XContentType.JSON);
+                IndexRequest indexRequest = new IndexRequest("tweets").id(id).source(record.value(), XContentType.JSON);
 
                 IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-                String id = indexResponse.getId();
                 logger.info(id);
                 try {
                     Thread.sleep(1000);
