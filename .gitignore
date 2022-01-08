@@ -18,3 +18,4 @@ target/
 src/main/resources/config.properties
 kafka-producer-twitter/src/main/resources/config.properties
 kafka-consumer-elasticsearch/src/main/resources/config.properties
+kafka-connect/twitter.properties
